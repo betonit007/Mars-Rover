@@ -1,18 +1,32 @@
 //NASA Mars Rover API
-const count = 10;
+const camera = "NAVCAM";
 const apiKey = `DEMO_KEY`
-const apiUrl = `https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=${count}&api_key=DEMO_KEY`
+const apiUrl = `https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=50&camera=${camera}&api_key=DEMO_KEY`
 const resultsNav = document.getElementById('resultsNav')
 const favoritesNav = document.getElementById('favoritesNav')
 const imagesContainer = document.querySelector('.images-container')
-const saveConfirmed = document.querySelector('.saved-confirmed')
+const saveConfirmed = document.querySelector('.save-confirmed')
 const loader = document.querySelector('.loader')
 
 let resultsArray = []
 let favorites = {}
 
-function updateDOM() {
-    resultsArray.forEach((result)=> {
+function showContent(page) {
+    window.scrollTo({ top: 0, behavior: 'instant'})
+    if (page === 'results') {
+        resultsNav.classList.remove('hidden')
+        favoritesNav.classList.add('hidden')
+
+    } else {
+        resultsNav.classList.add('hidden')
+        favoritesNav.classList.remove('hidden')
+    }
+    loader.classList.add('hidden')
+}
+
+function createDOMNodes(page) {
+    const currentArray = page === 'results' ? resultsArray : Object.values(favorites)
+    currentArray.forEach((result) => {
         // Card Container   
         const card = document.createElement('div')
         card.classList.add('card')
@@ -20,7 +34,7 @@ function updateDOM() {
         const link = document.createElement('a')
         link.href = result.img_src
         link.title = 'View Full Image'
-        link.target='_blank'
+        link.target = '_blank'
         //Image
         const image = document.createElement('img')
         image.src = result.img_src
@@ -33,8 +47,13 @@ function updateDOM() {
         //Save Text
         const saveText = document.createElement('p')
         saveText.classList.add('clickable')
-        saveText.textContent = 'ADD to favorites'
-        saveText.setAttribute('onclick', `saveFavorite('${result.img_src}')`)
+        if (page === 'results') {
+            saveText.textContent = 'ADD To Favorites'
+            saveText.setAttribute('onclick', `saveFavorite('${result.img_src}')`)
+        } else {
+            saveText.textContent = 'Remove Favorite'
+            saveText.setAttribute('onclick', `removeFavorite('${result.img_src}')`)
+        }
         //Card Title
         const cardTitle = document.createElement('h5')
         cardTitle.classList.add('card-title')
@@ -61,12 +80,25 @@ function updateDOM() {
     })
 }
 
+function updateDOM(page) {
+    //Get favorites from local storage
+    if (localStorage.getItem('nasaRoverFavorites')) {
+        favorites = JSON.parse(localStorage.getItem('nasaRoverFavorites'))
+    }
+    imagesContainer.textContent = '';
+    //createDOMNodes(page)
+    showContent(page)
+}
+
 // Get 10 Images from NASA Mars API
 async function getMarsPhotos() {
+    //Show loader
+    loader.classList.remove('hidden')
     try {
         const res = await (await fetch(apiUrl)).json()
+        console.log(res);
         resultsArray = res.photos
-        updateDOM()
+        updateDOM('results')
     } catch (err) {
         console.log(err)
     }
@@ -74,7 +106,28 @@ async function getMarsPhotos() {
 
 // Add result to Favorites
 function saveFavorite(itemUrl) {
-    console.log(itemUrl)
+    //Loop through Results Array to select Favorite
+    resultsArray.forEach((item) => {
+        if (item.img_src.includes(itemUrl) && !favorites[itemUrl]) {
+            favorites[itemUrl] = item;
+            //Show saved confirmation for 2 seconds
+
+            saveConfirmed.hidden = false
+            setTimeout(() => {
+                saveConfirmed.hidden = true
+            }, 2500)
+            localStorage.setItem('nasaRoverFavorites', JSON.stringify(favorites))
+        }
+    })
+}
+
+//Remove item from favorites
+function removeFavorite(itemUrl) {
+    if (favorites[itemUrl]) {
+        delete favorites[itemUrl]
+        localStorage.setItem('nasaRoverFavorites', JSON.stringify(favorites))
+        updateDOM('favorites')
+    }
 }
 
 getMarsPhotos()
