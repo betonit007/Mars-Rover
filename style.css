@@ -53,13 +53,13 @@ body {
 }
 
 .clickable {
-  color: dodgerblue;
+  color: #934838;
   cursor: pointer;
   user-select: none;
 }
 
 .clickable:hover {
-  color: rgb(11, 95, 179);
+  color: #bd5d47
 }
 
 
