@@ -5,11 +5,19 @@ const apiUrl = `https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?
 const resultsNav = document.getElementById('resultsNav')
 const favoritesNav = document.getElementById('favoritesNav')
 const imagesContainer = document.querySelector('.images-container')
+const mainContainer = document.getElementById('container')
 const saveConfirmed = document.querySelector('.save-confirmed')
 const loader = document.querySelector('.loader')
+const welcomeContainer = document.querySelector('.welcome-container')
+
 
 let resultsArray = []
 let favorites = {}
+console.log(welcomeContainer)
+function start() {
+  welcomeContainer.classList.add('hidden')
+  mainContainer.classList.remove('hidden')
+}
 
 function showContent(page) {
     window.scrollTo({ top: 0, behavior: 'instant'})
@@ -86,7 +94,7 @@ function updateDOM(page) {
         favorites = JSON.parse(localStorage.getItem('nasaRoverFavorites'))
     }
     imagesContainer.textContent = '';
-    //createDOMNodes(page)
+    createDOMNodes(page)
     showContent(page)
 }
 
